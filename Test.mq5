@@ -68,6 +68,7 @@ void OnTick()
       MqlRates mrate[];
       MqlTradeRequest mrequest;
       MqlTradeResult mresult;
+      ZeroMemory(mrequest);
       
       //--- Get Technical Indicator 
       ArraySetAsSeries(maVal,true);
@@ -92,25 +93,31 @@ void OnTick()
             return;
          }
         
-      Print( mrate[0].close );
-      
-      buy_cond_1 = ( mrate[0].close >= 1.13600 );
+      Print( "Close" + mrate[0].close );
+      Print( "Last" + latest_price.bid );
+      Print( "normalize" + NormalizeDouble(7.88889,4) );
+      Print( "Last" + NormalizeDouble(SymbolInfoDouble(Symbol(),SYMBOL_BID),5) );
+      Print(_Symbol);
+      buy_cond_1 = ( mrate[0].close >= 1.14000 );
       
       if(buy_cond_1)
-
+         Print(" In Cond ");
          {
             mrequest.action = TRADE_ACTION_DEAL;                                 // immediate order execution
-            mrequest.price = NormalizeDouble(latest_price.bid,_Digits);          // latest Bid price
-            //mrequest.sl = NormalizeDouble(latest_price.bid + STP*_Point,_Digits); // Stop Loss
-            //mrequest.tp = NormalizeDouble(latest_price.bid - TKP*_Point,_Digits); // Take Profit
+            //mrequest.price = SymbolInfoDouble(Symbol(),SYMBOL_BID);
+            mrequest.price = NormalizeDouble(SYMBOL_BID,_Digits);          // latest Bid price
+            //mrequest.sl = NormalizeDouble(SYMBOL_BID + 20*_Point,_Digits); // Stop Loss
+            //mrequest.tp = NormalizeDouble(SYMBOL_BID - 20*_Point,_Digits); // Take Profit
             mrequest.symbol = _Symbol;                                         // currency pair
             mrequest.volume = 0.1;                                            // number of lots to trade
-            mrequest.magic = 555555;                                        // Order Magic Number
+            mrequest.magic = 123456;                                        // Order Magic Number
             mrequest.type= ORDER_TYPE_SELL;                                     // Sell Order
-            //mrequest.type_filling = ORDER_FILLING_FOK;                          // Order execution type
-            mrequest.deviation=100;                                           // Deviation from current price
+            mrequest.type_filling = ORDER_FILLING_IOC;                          // Order execution type
+            mrequest.deviation=10;                                           // Deviation from current price
             //--- send order
             OrderSend(mrequest,mresult);
+            
+            Print(mresult.retcode);
             
             // get the result code
             if(mresult.retcode==10009 || mresult.retcode==10008) //Request is completed or order placed
