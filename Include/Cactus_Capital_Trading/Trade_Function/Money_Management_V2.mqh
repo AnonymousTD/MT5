@@ -20,7 +20,8 @@ double mm_lots(const int         mm_type,
                const int         magic_number,
                const int         rr_ratio,
                const int         sl_point,
-               const double      fix_profit_point,
+               const double      fix_profit_usd,
+               const double      step_profit_usd,
                bool              print_mode = true)
 
   {
@@ -33,6 +34,7 @@ double mm_lots(const int         mm_type,
    long           history_deal_side;
    long           history_deal_type;
    long           history_deal_magic;
+   uint           total_closed_deal = 0;
    datetime       start_date = TimeCurrent() - (look_back_date * 24 * 60 * 60);
    int            loss_sequence = 0;
    double         total_loss_sequence = 0;
@@ -75,6 +77,9 @@ double mm_lots(const int         mm_type,
          if((history_deal_type == 1) && (history_deal_name == symbol))
            {
 
+            //--- Count when deal is already closed ( Didn't use but has potential for futher use)
+            total_closed_deal += 1;
+            
             //--- In case that magic number is assigned
             if(magic_number != NULL)
               {
@@ -103,7 +108,7 @@ double mm_lots(const int         mm_type,
               }
 
             //--- In case that magic number is not assigned
-            if(magic_number == NULL)
+            else if(magic_number == NULL)
               {
 
                if((history_deal_profit <= 0))
@@ -172,8 +177,7 @@ double mm_lots(const int         mm_type,
 //+------------------------------------------------------------------+
 //| Martingle Money Management Fix Profit                            |
 //+------------------------------------------------------------------+
-   else
-      if(mm_type == 2)
+   else if(mm_type == 2)
         {
 
          //--- When loss, double position size
@@ -182,7 +186,7 @@ double mm_lots(const int         mm_type,
 
             //-- Calculate formula
             //-- Multiply by 100 to change to multiplier factor
-            volume_multipler = double(MathCeil((fix_profit_point - total_loss_sequence) * 100 / (rr_ratio * sl_point)));
+            volume_multipler = double(MathCeil((fix_profit_usd - total_loss_sequence) * 100 / (rr_ratio * sl_point)));
 
            }
 
@@ -190,7 +194,7 @@ double mm_lots(const int         mm_type,
          else
            {
 
-            volume_multipler = double(MathCeil((fix_profit_point * 100) / (rr_ratio * sl_point)));
+            volume_multipler = double(MathCeil((fix_profit_usd * 100) / (rr_ratio * sl_point)));
 
            }
 
@@ -199,8 +203,7 @@ double mm_lots(const int         mm_type,
       //+------------------------------------------------------------------+
       //| Martingle Money Management Fix Profit and Step                   |
       //+------------------------------------------------------------------+
-      else
-         if(mm_type == 3)
+      else if(mm_type == 3)
            {
 
             //--- When loss, double position size
@@ -209,7 +212,7 @@ double mm_lots(const int         mm_type,
 
                //-- Calculate formula
                //-- Multiply by 100 to change to multiplier factor
-               volume_multipler = double(MathCeil((fix_profit_point + (total_history_deal * 10) - total_loss_sequence) * 100 / (rr_ratio * sl_point)));
+               volume_multipler = double(MathCeil((fix_profit_usd + (loss_sequence * step_profit_usd) - total_loss_sequence) * 100 / (rr_ratio * sl_point)));
 
               }
 
@@ -217,7 +220,7 @@ double mm_lots(const int         mm_type,
             else
               {
 
-               volume_multipler = double(MathCeil(((fix_profit_point + (total_history_deal * 10)) * 100) / (rr_ratio * sl_point)));
+               volume_multipler = double(MathCeil((fix_profit_usd * 100) / (rr_ratio * sl_point)));
 
               }
 
