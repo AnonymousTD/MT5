@@ -36,16 +36,29 @@ enum trading_period
       H4,
       H6
   };
-  
+
+input group          "Trading Parameter"
 input double         Start_Lots              =  0.01;
+input trading_period Trading_Period          =  H1;
 input int            Max_Position            =  1;
 input double         RR_Ratio                =  2;
 input int            SL_Point                =  500;
 input bool           Allow_Send_Order        =  true;
+
+input group          "Money Management Parameter"
 input mm_type        MM_Type                 =  Normal;
+input int            Look_Back_Period        =  365;
+
+input group          "Martingle Fix Profit Parameter"
+input double         Fix_Profit_USD          =  100;
+
+input group          "Martingle Fix Profit with Step Parameter"
+input double         Step_Profit_USD         =  100;
+
+input group          "Optimization Parameter"
 input bool           Optimization            =  false;
 input int            Optimization_Round      =  1;
-input trading_period Trading_Period          =  H1;
+
 
 //+------------------------------------------------------------------+
 //| Global Variable                                                  |
@@ -245,7 +258,7 @@ void OnTimer()
    //+------------------------------------------------------------------+
    
    //--- Get total product position
-   position_size = mm_lots(MM_Type, Start_Lots, _Symbol, 365, NULL, RR_Ratio, SL_Point, 100, true);
+   position_size = mm_lots(MM_Type, Start_Lots, _Symbol, Look_Back_Period, NULL, RR_Ratio, SL_Point, Fix_Profit_USD, Step_Profit_USD, true);
    
    //--- Max position size at product maximum position size
    position_size = MathMin( position_size, max_volume );
